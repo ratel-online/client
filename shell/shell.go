@@ -1,13 +1,12 @@
 package shell
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/howeyc/gopass"
+	"github.com/ratel-online/client/api"
 	"github.com/ratel-online/client/ctx"
-	"github.com/ratel-online/client/render"
-	"net/http"
-	"strings"
+	"log"
+	"os"
 )
 
 var servers = []string{
@@ -16,58 +15,31 @@ var servers = []string{
 }
 
 type shell struct {
-	ctx      *ctx.Context
-	position *directory
-	addr    string
+	ctx  *ctx.Context
+	addr string
 }
 
 func New(addr string) *shell {
 	return &shell{
-		ctx: ctx.NewContext(),
-		position: root,
-		addr:    addr,
+		ctx:  &ctx.Context{},
+		addr: addr,
 	}
 }
 
 func (s *shell) Start() {
-	for {
-		fmt.Printf("[%s@hxd %s]# ", s.ctx.Name, s.position.name)
-		inputs, err := render.Readline()
-		if err != nil {
-			fmt.Println(err.Error())
-			continue
-		}
-		if strings.TrimSpace(string(inputs)) != "" {
-			res, err := s.position.action(s, inputs)
-			if err != nil {
-				fmt.Println(err.Error())
-				continue
-			}
-			fmt.Print(res)
-		}
+	args := os.Args
+	if len(args) < 1 {
+		log.Fatalln("please enter your username.")
 	}
-}
-
-func (s *shell) refreshServerList() error {
-	serverList := make([]string, 0)
-	if s.addrs != "" {
-		serverList = append(serverList, s.addrs+"|default")
-	} else {
-		for _, server := range servers {
-			resp, err := http.Get(server)
-			if err != nil && resp == "" {
-				continue
-			}
-			json.Unmarshal([]byte(resp), &serverList)
-		}
+	username := args[1]
+	fmt.Printf("password: ")
+	password, err := gopass.GetPasswd()
+	if err != nil {
+		log.Fatal(err)
 	}
-	if len(serverList) == 0 {
-		return errors.New("no available server. ")
+	resp, err := api.Login(username, string(password))
+	if err != nil {
+		log.Fatal(err)
 	}
-	s.position.reset()
-	for _, v := range serverList {
-		serverInfo := strings.Split(v, "|")
-		s.position.add(newDirectory(strings.ToLower(serverInfo[1]), strings.ToLower(serverInfo[0]), serverActions, baseActions))
-	}
-	return nil
+	log.Println(resp.Data.Token)
 }
