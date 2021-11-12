@@ -1,4 +1,4 @@
-package api
+package model
 
 type Common struct {
 	Code int    `json:"code"`
