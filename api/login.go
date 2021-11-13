@@ -1,8 +1,8 @@
 package api
 
 import (
-    "github.com/ratel-online/client/model"
-    "github.com/ratel-online/core/util/http"
+	"github.com/ratel-online/client/model"
+	"github.com/ratel-online/core/util/http"
 	"github.com/ratel-online/core/util/json"
 )
 
@@ -17,6 +17,6 @@ func Login(username, password string) (*model.LoginResp, error) {
 		return nil, err
 	}
 	resp := model.LoginResp{}
-	json.Unmarshal(body, &resp)
+	_ = json.Unmarshal(body, &resp)
 	return &resp, nil
 }
