@@ -6,6 +6,7 @@ import (
 	"github.com/ratel-online/client/api"
 	"github.com/ratel-online/client/ctx"
 	"github.com/ratel-online/client/util"
+	"github.com/ratel-online/core/log"
 )
 
 type shell struct {
@@ -19,7 +20,7 @@ func New(addr string) *shell {
 	}
 }
 
-func (s *shell) Start() {
+func (s *shell) Start() error {
 	fmt.Printf("usr: ")
 	username, err := util.Readline()
 	if err != nil {
@@ -32,12 +33,19 @@ func (s *shell) Start() {
 	}
 	resp, err := api.Login(string(username), string(password))
 	if err != nil {
-		panic(err)
+		log.Error(err)
+		return err
 	}
 	s.ctx = ctx.New(resp.Data)
 	err = s.ctx.Connect("tcp", s.addr)
 	if err != nil {
-		panic(err)
+		log.Error(err)
+		return err
 	}
-	panic(s.ctx.Loop())
+	err = s.ctx.Auth()
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	return s.ctx.Listener()
 }

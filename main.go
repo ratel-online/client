@@ -2,8 +2,9 @@ package main
 
 import (
 	"github.com/ratel-online/client/shell"
+	"github.com/ratel-online/core/log"
 )
 
 func main() {
-	shell.New("127.0.0.1:8080").Start()
+	log.Error(shell.New("127.0.0.1:8080").Start())
 }

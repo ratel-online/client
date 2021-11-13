@@ -13,6 +13,7 @@ type LoginResp struct {
 type LoginRespData struct {
 	ID       int64  `json:"id"`
 	Name     string `json:"name"`
+	Score    int64  `json:"score"`
 	Username string `json:"username"`
 	Token    string `json:"token"`
 }

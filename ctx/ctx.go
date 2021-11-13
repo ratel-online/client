@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/ratel-online/client/model"
 	"github.com/ratel-online/client/util"
+	modelx "github.com/ratel-online/core/model"
 	"github.com/ratel-online/core/network"
 	"github.com/ratel-online/core/protocol"
 	"github.com/ratel-online/core/util/async"
@@ -16,6 +17,7 @@ import (
 type Context struct {
 	id     int64
 	name   string
+	score  int64
 	token  string
 	roomId int64
 
@@ -33,6 +35,7 @@ func New(user model.LoginRespData) *Context {
 	return &Context{
 		id:    user.ID,
 		name:  user.Name,
+		score: user.Score,
 		token: user.Token,
 	}
 }
@@ -49,7 +52,15 @@ func (c *Context) Connect(net string, addr string) error {
 	return errors.New(fmt.Sprintf("unsupported net type: %s", net))
 }
 
-func (c *Context) Loop() error {
+func (c *Context) Auth() error {
+	return c.conn.Write(protocol.ObjectPacket(modelx.AuthInfo{
+		ID:    c.id,
+		Name:  c.name,
+		Score: c.score,
+	}))
+}
+
+func (c *Context) Listener() error {
 	async.Async(func() {
 		for {
 			line, err := util.Readline()
