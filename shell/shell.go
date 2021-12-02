@@ -4,6 +4,7 @@ import (
 	"github.com/ratel-online/client/ctx"
 	"github.com/ratel-online/client/model"
 	"github.com/ratel-online/core/log"
+	"time"
 )
 
 type shell struct {
@@ -34,7 +35,7 @@ func (s *shell) Start() error {
 	//    return err
 	//}
 	s.ctx = ctx.New(model.LoginRespData{
-		ID:       1,
+		ID:       time.Now().UnixNano(),
 		Name:     "Nico",
 		Score:    100,
 		Username: "Nico",
