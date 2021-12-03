@@ -7,12 +7,14 @@ import (
 	"github.com/ratel-online/client/model"
 	"github.com/ratel-online/client/util"
 	"github.com/ratel-online/core/consts"
+	"github.com/ratel-online/core/log"
 	modelx "github.com/ratel-online/core/model"
 	"github.com/ratel-online/core/network"
 	"github.com/ratel-online/core/protocol"
 	"github.com/ratel-online/core/util/async"
 	"net"
 	"net/url"
+	"strings"
 )
 
 type Context struct {
@@ -67,25 +69,34 @@ func (c *Context) Listener() error {
 		for {
 			line, err := util.Readline()
 			if err != nil {
-				panic(err)
+				log.Panic(err)
 			}
-			if is {
-				err = c.conn.Write(protocol.Packet{
-					Body: line,
-				})
-				if err != nil {
-					continue
-				}
+			if !is {
+				continue
 			}
+			err = c.conn.Write(protocol.Packet{
+				Body: line,
+			})
+			if err != nil {
+				continue
+			}
+			is = false
 		}
 	})
 	return c.conn.Accept(func(packet protocol.Packet, conn *network.Conn) {
 		data := string(packet.Body)
 		if data == consts.IS {
+			if !is {
+				fmt.Print(fmt.Sprintf("\r\r[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
+			}
 			is = true
 			return
 		}
-		fmt.Print(data)
+		if is {
+			fmt.Print("\r\r" + data + fmt.Sprintf("\r\r[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
+		} else {
+			fmt.Print(data)
+		}
 	})
 }
 
