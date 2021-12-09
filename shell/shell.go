@@ -1,9 +1,9 @@
 package shell
 
 import (
-	"fmt"
 	"github.com/ratel-online/client/ctx"
 	"github.com/ratel-online/client/model"
+	"github.com/ratel-online/client/util"
 	"github.com/ratel-online/core/log"
 	"os"
 	"time"
@@ -36,12 +36,11 @@ func (s *shell) Start() error {
 	//    log.Error(err)
 	//    return err
 	//}
-
-	name := fmt.Sprintf("%s%v", "Nico", time.Now().Second())
+	name := util.RandomName()
 	if len(os.Args) > 1 {
 		name = os.Args[1]
 	}
-	//s.addr = "121.5.140.133:8080"
+	//s.addr = "49.235.95.125:9999"
 	//if len(os.Args) > 2 {
 	//	s.addr = os.Args[2]
 	//}
