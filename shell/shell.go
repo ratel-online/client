@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"fmt"
 	"github.com/ratel-online/client/ctx"
 	"github.com/ratel-online/client/model"
 	"github.com/ratel-online/client/util"
@@ -36,19 +37,19 @@ func (s *shell) Start() error {
 	//    log.Error(err)
 	//    return err
 	//}
-	name := util.RandomName()
-	if len(os.Args) > 1 {
-		name = os.Args[1]
+	//name := util.RandomName()
+
+	fmt.Printf("Nickname: ")
+	name, _ := util.Readline()
+	s.addr = "49.235.95.125:9999"
+	if len(os.Args) > 2 {
+		s.addr = os.Args[2]
 	}
-	//s.addr = "49.235.95.125:9999"
-	//if len(os.Args) > 2 {
-	//	s.addr = os.Args[2]
-	//}
 	s.ctx = ctx.New(model.LoginRespData{
 		ID:       time.Now().UnixNano(),
-		Name:     name,
+		Name:     string(name),
 		Score:    100,
-		Username: name,
+		Username: string(name),
 		Token:    "aeiou",
 	})
 	err := s.ctx.Connect("tcp", s.addr)
