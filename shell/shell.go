@@ -1,7 +1,6 @@
 package shell
 
 import (
-	"fmt"
 	"github.com/ratel-online/client/ctx"
 	"github.com/ratel-online/client/model"
 	"github.com/ratel-online/client/util"
@@ -37,10 +36,10 @@ func (s *shell) Start() error {
 	//    log.Error(err)
 	//    return err
 	//}
-	//name := util.RandomName()
+	name := util.RandomName()
 
-	fmt.Printf("Nickname: ")
-	name, _ := util.Readline()
+	//fmt.Printf("Nickname: ")
+	//name, _ := util.Readline()
 	s.addr = "49.235.95.125:9999"
 	if len(os.Args) > 2 {
 		s.addr = os.Args[2]

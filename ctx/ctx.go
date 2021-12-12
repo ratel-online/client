@@ -74,22 +74,28 @@ func (c *Context) Listener() error {
 			if !is {
 				continue
 			}
+			fmt.Print(fmt.Sprintf("\r\r[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
 			err = c.conn.Write(protocol.Packet{
 				Body: line,
 			})
 			if err != nil {
 				continue
 			}
-			is = false
 		}
 	})
 	return c.conn.Accept(func(packet protocol.Packet, conn *network.Conn) {
 		data := string(packet.Body)
-		if data == consts.IS {
+		if data == consts.IS_START {
 			if !is {
 				fmt.Print(fmt.Sprintf("\r\r[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
 			}
 			is = true
+			return
+		} else if data == consts.IS_STOP {
+			if is {
+				fmt.Print("\r\r")
+			}
+			is = false
 			return
 		}
 		if is {
