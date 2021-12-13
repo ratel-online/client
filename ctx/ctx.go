@@ -15,9 +15,13 @@ import (
 	"net"
 	"net/url"
 	"strings"
+	"sync"
 )
 
+const cleanLine = "\r\r                                                                                              \r\r"
+
 type Context struct {
+	sync.Mutex
 	id     int64
 	name   string
 	score  int64
@@ -74,7 +78,7 @@ func (c *Context) Listener() error {
 			if !is {
 				continue
 			}
-			fmt.Print(fmt.Sprintf("\r\r[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
+			c.print(fmt.Sprintf(cleanLine+"[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
 			err = c.conn.Write(protocol.Packet{
 				Body: line,
 			})
@@ -87,23 +91,29 @@ func (c *Context) Listener() error {
 		data := string(packet.Body)
 		if data == consts.IS_START {
 			if !is {
-				fmt.Print(fmt.Sprintf("\r\r[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
+				c.print(fmt.Sprintf(cleanLine+"[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
 			}
 			is = true
 			return
 		} else if data == consts.IS_STOP {
 			if is {
-				fmt.Print("\r\r")
+				c.print(cleanLine)
 			}
 			is = false
 			return
 		}
 		if is {
-			fmt.Print("\r\r" + data + fmt.Sprintf("\r\r[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
+			c.print(cleanLine + data + fmt.Sprintf(cleanLine+"[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
 		} else {
-			fmt.Print(data)
+			c.print(data)
 		}
 	})
+}
+
+func (c *Context) print(str string) {
+	c.Lock()
+	defer c.Unlock()
+	fmt.Print(str)
 }
 
 func tcpConnect(addr string) (*network.Conn, error) {
