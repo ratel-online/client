@@ -89,13 +89,13 @@ func (c *Context) Listener() error {
 	})
 	return c.conn.Accept(func(packet protocol.Packet, conn *network.Conn) {
 		data := string(packet.Body)
-		if data == consts.IS_START {
+		if data == consts.IsStart {
 			if !is {
 				c.print(fmt.Sprintf(cleanLine+"[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
 			}
 			is = true
 			return
-		} else if data == consts.IS_STOP {
+		} else if data == consts.IsStop {
 			if is {
 				c.print(cleanLine)
 			}
