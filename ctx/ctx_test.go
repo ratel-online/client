@@ -2,7 +2,7 @@ package ctx
 
 import (
 	"encoding/binary"
-	"github.com/ratel-online/client/model"
+	"github.com/ratel-online/client/api"
 	"github.com/ratel-online/core/consts"
 	"github.com/ratel-online/core/log"
 	"github.com/ratel-online/core/network"
@@ -40,7 +40,7 @@ func TestContext_Listener(t *testing.T) {
 }
 
 func _singleTest(id int64) {
-	ctx := New(model.LoginRespData{
+	ctx := New(api.LoginRespData{
 		ID:       id,
 		Name:     "a",
 		Score:    100,
@@ -59,7 +59,7 @@ func _singleTest(id int64) {
 	}
 	_ = ctx.conn.Accept(func(packet protocol.Packet, conn *network.Conn) {
 		data := string(packet.Body)
-		if data == consts.IS_START {
+		if data == consts.IsStart {
 			_ = conn.Write(protocol.Packet{
 				Body: []byte("2"),
 			})

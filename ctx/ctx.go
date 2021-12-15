@@ -4,31 +4,31 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/ratel-online/client/model"
-	"github.com/ratel-online/client/util"
+	"github.com/ratel-online/client/api"
 	"github.com/ratel-online/core/consts"
-	"github.com/ratel-online/core/log"
-	modelx "github.com/ratel-online/core/model"
+	errorx "github.com/ratel-online/core/errors"
+	"github.com/ratel-online/core/model"
 	"github.com/ratel-online/core/network"
 	"github.com/ratel-online/core/protocol"
-	"github.com/ratel-online/core/util/async"
+	"github.com/ratel-online/core/util/json"
 	"net"
 	"net/url"
-	"strings"
 	"sync"
+	"time"
 )
 
 const cleanLine = "\r\r                                                                                              \r\r"
 
 type Context struct {
 	sync.Mutex
-	id     int64
-	name   string
-	score  int64
-	token  string
-	roomId int64
+	ID     int64
+	Name   string
+	Score  int64
+	Token  string
+	RoomId int64
 
-	conn *network.Conn
+	conn     *network.Conn
+	channels map[int]chan *model.Resp
 }
 
 type netConnector func(addr string) (*network.Conn, error)
@@ -38,12 +38,17 @@ var netConnectors = map[string]netConnector{
 	"ws":  websocketConnect,
 }
 
-func New(user model.LoginRespData) *Context {
+func New(user api.LoginRespData) *Context {
+	channels := map[int]chan *model.Resp{}
+	for i := 1; i <= 3; i++ {
+		channels[i] = make(chan *model.Resp, 10)
+	}
 	return &Context{
-		id:    user.ID,
-		name:  user.Name,
-		score: user.Score,
-		token: user.Token,
+		ID:       user.ID,
+		Name:     user.Name,
+		Score:    user.Score,
+		Token:    user.Token,
+		channels: channels,
 	}
 }
 
@@ -60,52 +65,20 @@ func (c *Context) Connect(net string, addr string) error {
 }
 
 func (c *Context) Auth() error {
-	return c.conn.Write(protocol.ObjectPacket(modelx.AuthInfo{
-		ID:    c.id,
-		Name:  c.name,
-		Score: c.score,
+	return c.conn.Write(protocol.ObjectPacket(model.AuthInfo{
+		ID:    c.ID,
+		Name:  c.Name,
+		Score: c.Score,
+		Token: c.Token,
 	}))
 }
 
 func (c *Context) Listener() error {
-	is := false
-	async.Async(func() {
-		for {
-			line, err := util.Readline()
-			if err != nil {
-				log.Panic(err)
-			}
-			if !is {
-				continue
-			}
-			c.print(fmt.Sprintf(cleanLine+"[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
-			err = c.conn.Write(protocol.Packet{
-				Body: line,
-			})
-			if err != nil {
-				continue
-			}
-		}
-	})
 	return c.conn.Accept(func(packet protocol.Packet, conn *network.Conn) {
-		data := string(packet.Body)
-		if data == consts.IsStart {
-			if !is {
-				c.print(fmt.Sprintf(cleanLine+"[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
-			}
-			is = true
-			return
-		} else if data == consts.IsStop {
-			if is {
-				c.print(cleanLine)
-			}
-			is = false
-			return
-		}
-		if is {
-			c.print(cleanLine + data + fmt.Sprintf(cleanLine+"[%s@ratel %s]# ", strings.TrimSpace(strings.ToLower(c.name)), "~"))
-		} else {
-			c.print(data)
+		resp := &model.Resp{}
+		_ = json.Unmarshal(packet.Body, resp)
+		if channel, ok := c.channels[resp.Type]; ok {
+			channel <- resp
 		}
 	})
 }
@@ -114,6 +87,28 @@ func (c *Context) print(str string) {
 	c.Lock()
 	defer c.Unlock()
 	fmt.Print(str)
+}
+
+func (c *Context) Request(t int, code int, data interface{}) (*model.Resp, error) {
+	err := c.conn.Write(protocol.Packet{
+		Body: json.Marshal(model.Req{
+			Type: t,
+			Code: code,
+			Data: json.Marshal(data),
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if t == consts.Service {
+		select {
+		case resp := <-c.channels[t]:
+			return resp, nil
+		case <-time.After(3 * time.Second):
+			return nil, errorx.Timeout
+		}
+	}
+	return nil, nil
 }
 
 func tcpConnect(addr string) (*network.Conn, error) {
