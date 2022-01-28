@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/ratel-online/client/config"
 	"github.com/ratel-online/client/model"
 	"github.com/ratel-online/client/util"
 	"github.com/ratel-online/core/consts"
@@ -61,9 +62,10 @@ func (c *Context) Connect(net string, addr string) error {
 
 func (c *Context) Auth() error {
 	return c.conn.Write(protocol.ObjectPacket(modelx.AuthInfo{
-		ID:    c.id,
-		Name:  c.name,
-		Score: c.score,
+		ID:            c.id,
+		Name:          c.name,
+		Score:         c.score,
+		ClientVersion: config.CLIENT_VERSION,
 	}))
 }
 
