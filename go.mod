@@ -14,5 +14,3 @@ require (
     golang.org/x/sys v0.0.0-20211110154304-99a53858aa08 // indirect
     golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
 )
-
-replace github.com/ratel-online/core => D:\workspace\ratel\core
