@@ -1,21 +1,23 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"os"
-
 	"github.com/ratel-online/client/shell"
 	"github.com/ratel-online/core/log"
 )
 
+var (
+	host string
+	port int
+)
+
+func init() {
+	flag.StringVar(&host, "h", "127.0.0.1", "host")
+	flag.IntVar(&port, "p", 9999, "port")
+	flag.Parse()
+}
+
 func main() {
-	if len(os.Args) > 0 {
-        for _, arg := range os.Args {
-            if arg=="-help" {
-				fmt.Print(HELP)
-				os.Exit(0)
-			}
-        }
-    }
-	log.Error(shell.New("127.0.0.1:9999").Start())
+	log.Error(shell.New(fmt.Sprintf("%s:%d", host, port)).Start())
 }
