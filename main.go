@@ -10,14 +10,18 @@ import (
 var (
 	host string
 	port int
+	name string
 )
 
 func init() {
 	flag.StringVar(&host, "h", "127.0.0.1", "host")
 	flag.IntVar(&port, "p", 9999, "port")
+	flag.StringVar(&name, "n", "", "name")
 	flag.Parse()
 }
 
 func main() {
-	log.Error(shell.New(fmt.Sprintf("%s:%d", host, port)).Start())
+	addr := fmt.Sprintf("%s:%d", host, port)
+
+	log.Error(shell.New(addr, name).Start())
 }

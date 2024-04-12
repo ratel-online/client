@@ -11,43 +11,26 @@ import (
 type shell struct {
 	ctx  *ctx.Context
 	addr string
+	name string
 }
 
-func New(addr string) *shell {
+func New(addr, name string) *shell {
 	return &shell{
 		addr: addr,
+		name: name,
 	}
 }
 
 func (s *shell) Start() error {
-	//fmt.Printf("usr: ")
-	//username, err := util.Readline()
-	//if err != nil {
-	//    panic(err)
-	//}
-	//fmt.Printf("pwd: ")
-	//password, err := gopass.GetPasswd()
-	//if err != nil {
-	//    panic(err)
-	//}
-	//resp, err := api.Login(string(username), string(password))
-	//if err != nil {
-	//    log.Error(err)
-	//    return err
-	//}
 	name := util.RandomName()
-
-	//fmt.Printf("Nickname: ")
-	//name, _ := util.Readline()
-	//s.addr = "49.235.95.125:9999"
-	//if len(os.Args) > 2 {
-	//	s.addr = os.Args[2]
-	//}
+	if s.name != "" {
+		name = s.name
+	}
 	s.ctx = ctx.New(model.LoginRespData{
 		ID:       time.Now().UnixNano(),
-		Name:     string(name),
+		Name:     name,
 		Score:    100,
-		Username: string(name),
+		Username: name,
 		Token:    "aeiou",
 	})
 	err := s.ctx.Connect("tcp", s.addr)

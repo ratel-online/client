@@ -12,3 +12,7 @@ client
 ```shell
 client -h 49.235.95.125
 ```
+连接时指定名字
+```shell
+client -n nico
+```
