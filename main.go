@@ -22,6 +22,5 @@ func init() {
 
 func main() {
 	addr := fmt.Sprintf("%s:%d", host, port)
-
 	log.Error(shell.New(addr, name).Start())
 }

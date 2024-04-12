@@ -5,6 +5,7 @@ import (
 	"github.com/ratel-online/client/model"
 	"github.com/ratel-online/client/util"
 	"github.com/ratel-online/core/log"
+	"strings"
 	"time"
 )
 
@@ -33,7 +34,11 @@ func (s *shell) Start() error {
 		Username: name,
 		Token:    "aeiou",
 	})
-	err := s.ctx.Connect("tcp", s.addr)
+	net := "tcp"
+	if strings.HasSuffix(s.addr, "9998") {
+		net = "ws"
+	}
+	err := s.ctx.Connect(net, s.addr)
 	if err != nil {
 		log.Error(err)
 		return err
